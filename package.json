@@ -1,0 +1,12 @@
+{
+  "name": "revise-me",
+  "private": true,
+  "workspaces": ["client", "server"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace client\" \"npm run start:dev --workspace server\"",
+    "client": "npm run dev --workspace client",
+    "server": "npm run start:dev --workspace server",
+    "build": "npm run build --workspace client && npm run build --workspace server"
+  },
+  "devDependencies": { "concurrently": "^9.1.2" }
+}
