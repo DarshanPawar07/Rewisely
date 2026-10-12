@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowRight, CalendarDays, Check, MoreHorizontal, Pencil, Plus, Target, Trash2, Type, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Loader2, MoreHorizontal, Pencil, Plus, Target, Trash2, Type, X } from 'lucide-react';
 import { apiRequest } from '../services/api';
 
 const shortDate = (value: string) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 export function WeeklyTargetsPage({ targets, token, refresh, createRequested, closeCreate }: { targets: any[]; token: string; refresh: () => Promise<void>; createRequested: boolean; closeCreate: () => void }) {
   const navigate = useNavigate();
-  const [creating, setCreating] = useState(false), [tasks, setTasks] = useState(['']), [menu, setMenu] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false), [creatingBusy, setCreatingBusy] = useState(false), [tasks, setTasks] = useState(['']), [menu, setMenu] = useState<string | null>(null);
   useEffect(() => { const closeMenu = () => setMenu(null); document.addEventListener('click', closeMenu); return () => document.removeEventListener('click', closeMenu); }, []);
   const showForm = creating || createRequested;
   const close = () => { setCreating(false); closeCreate(); };
-  const create = async (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = new FormData(event.currentTarget); const result = await apiRequest<any>('/weekly-targets', token, { method: 'POST', body: JSON.stringify({ name: String(form.get('name') || `Week ${targets.length + 1}`), weekStart: new Date(String(form.get('weekStart')) + 'T00:00:00').toISOString(), tasks: tasks.map(task => task.trim()).filter(Boolean) }) }); close(); setTasks(['']); await refresh(); navigate(`/weekly-targets/${result.data.id}`); };
+  const create = async (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); if (creatingBusy) return; setCreatingBusy(true); const form = new FormData(event.currentTarget); try { const result = await apiRequest<any>('/weekly-targets', token, { method: 'POST', body: JSON.stringify({ name: String(form.get('name') || `Week ${targets.length + 1}`), weekStart: new Date(String(form.get('weekStart')) + 'T00:00:00').toISOString(), tasks: tasks.map(task => task.trim()).filter(Boolean) }) }); close(); setTasks(['']); navigate(`/weekly-targets/${result.data.id}`); void refresh(); } catch (error) { window.alert(error instanceof Error ? error.message : 'Could not create weekly target'); } finally { setCreatingBusy(false); } };
   const remove = async (id: string) => { if (!window.confirm('Delete this weekly target?')) return; await apiRequest(`/weekly-targets/${id}`, token, { method: 'DELETE' }); setMenu(null); await refresh(); };
   const rename = async (target: any) => { const name = window.prompt('Target name', target.name); if (!name?.trim()) return; await apiRequest(`/weekly-targets/${target.id}`, token, { method: 'PATCH', body: JSON.stringify({ name: name.trim() }) }); await refresh(); };
   const now = Date.now();
@@ -46,7 +46,7 @@ export function WeeklyTargetsPage({ targets, token, refresh, createRequested, cl
               <button type="button" className="soft add-task-row" onClick={() => setTasks(values => [...values, ''])}><Plus size={14} /> Add another task</button>
             </div>
             <div className="actions">
-              <button className="primary"><Check size={16} /> Create target</button>
+              <button className="primary" disabled={creatingBusy}>{creatingBusy ? <><Loader2 size={16} className="spin" /> Creating…</> : <><Check size={16} /> Create target</>}</button>
               <button type="button" className="soft" onClick={close}>Cancel</button>
             </div>
           </form>
@@ -102,4 +102,3 @@ function Field({ label, name, type = 'text', defaultValue, icon: Icon }: { label
     </label>
   );
 }
-

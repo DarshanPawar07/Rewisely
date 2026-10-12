@@ -204,6 +204,7 @@
 .auth-card input[autocomplete='one-time-code'] { text-align: center; font-size: 22px; font-weight: 800; letter-spacing: .3em; }
 .auth-card .field-error { display: block; margin: 6px 2px 0; color: var(--danger-text); font-size: 12px; font-weight: 600; }
 .auth-card .field input[aria-invalid='true'] { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+.forgot-password { display: block; margin: -4px 0 12px auto; font-size: 12px; font-weight: 700; }
 
 @media (min-width: 960px) {
   .auth-shell { grid-template-columns: minmax(0, 1fr) 440px; justify-content: stretch; }

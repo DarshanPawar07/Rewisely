@@ -24,7 +24,7 @@ export class AuthService {
     }
   }
 
-  private codeHash(purpose: 'signup' | 'login', userId: string, code: string) {
+  private codeHash(purpose: 'signup' | 'login' | 'password-reset', userId: string, code: string) {
     return createHmac('sha256', this.secret()).update(`${purpose}:${userId}:${code}`).digest('hex');
   }
 
@@ -130,6 +130,39 @@ export class AuthService {
       throw new UnauthorizedException('The code is invalid, expired, or locked after too many tries. Request a new one and try again.');
     }
     return { user: this.publicUser(user, true), token: this.token(user) };
+  }
+
+  async requestPasswordReset(email: string) {
+    await this.ensureOtpSchema();
+    this.emailService.assertConfigured();
+    const normalizedEmail = email.trim().toLowerCase();
+    const users = await this.prisma.$queryRaw<Array<{ id: string; email: string; name: string; emailVerified: boolean; sentAt: Date | null }>>`SELECT id, email, name, "emailVerified", "emailLoginCodeSentAt" AS "sentAt" FROM "User" WHERE email = ${normalizedEmail} LIMIT 1`;
+    const user = users[0];
+    // Return the same response whether an account exists, preventing email enumeration.
+    if (!user || !user.emailVerified) return;
+    const retryAfter = (user.sentAt?.getTime() || 0) + 60_000 - Date.now();
+    if (retryAfter > 0) return;
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    const hash = this.codeHash('password-reset', user.id, code);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await this.prisma.$executeRaw`UPDATE "User" SET "emailLoginCodeHash" = ${hash}, "emailLoginCodeExpiresAt" = ${expiresAt}, "emailLoginCodeSentAt" = NOW(), "emailLoginCodeAttempts" = 0 WHERE id = ${user.id}`;
+    await this.emailService.sendOtp(user.email, user.name, code, 'password-reset');
+  }
+
+  async resetPassword(email: string, code: string, password: string) {
+    await this.ensureOtpSchema();
+    const normalizedEmail = email.trim().toLowerCase();
+    const users = await this.prisma.$queryRaw<Array<{ id: string }>>`SELECT id FROM "User" WHERE email = ${normalizedEmail} AND "emailVerified" = TRUE LIMIT 1`;
+    const userId = users[0]?.id;
+    const hash = userId ? this.codeHash('password-reset', userId, code) : '';
+    const matches = userId ? await this.prisma.$queryRaw<Array<{ id: string }>>`SELECT id FROM "User" WHERE id = ${userId} AND "emailLoginCodeHash" = ${hash} AND "emailLoginCodeExpiresAt" > NOW() AND "emailLoginCodeAttempts" < 5 LIMIT 1` : [];
+    if (!matches[0]) {
+      if (userId) await this.prisma.$executeRaw`UPDATE "User" SET "emailLoginCodeAttempts" = "emailLoginCodeAttempts" + 1 WHERE id = ${userId} AND "emailLoginCodeExpiresAt" > NOW() AND "emailLoginCodeAttempts" < 5`;
+      throw new BadRequestException('That reset code is invalid or expired. Request a new code and try again.');
+    }
+    const passwordHash = await bcrypt.hash(password, 12);
+    const updated = await this.prisma.$executeRaw`UPDATE "User" SET "passwordHash" = ${passwordHash}, "emailLoginCodeHash" = NULL, "emailLoginCodeExpiresAt" = NULL, "emailLoginCodeSentAt" = NULL, "emailLoginCodeAttempts" = 0 WHERE id = ${userId} AND "emailLoginCodeHash" = ${hash} AND "emailLoginCodeExpiresAt" > NOW() AND "emailLoginCodeAttempts" < 5`;
+    if (updated !== 1) throw new BadRequestException('That reset code is invalid or expired. Request a new code and try again.');
   }
   async me(id: string) {
     await this.ensureOtpSchema();

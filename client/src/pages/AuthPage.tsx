@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowRight, BarChart3, Bell, CalendarClock, Check, Eye, EyeOff, Loader2, Lock, Mail, MailCheck, Moon, RefreshCw, Sun, User } from 'lucide-react';
+import { ArrowRight, BarChart3, Bell, CalendarClock, Check, Eye, EyeOff, KeyRound, Loader2, Lock, Mail, MailCheck, Moon, RefreshCw, Sun, User } from 'lucide-react';
 import { apiRequest, API_URL } from '../services/api';
 
 type Props = { onLogin: (token: string, name: string) => void; theme?: 'light' | 'dark'; onToggleTheme?: () => void };
@@ -18,6 +18,8 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
   const [verificationEmail, setVerificationEmail] = useState(new URLSearchParams(location.search).get('email') || '');
   const [signupPending, setSignupPending] = useState(isVerifyPage);
   const [loginCodePending, setLoginCodePending] = useState(false);
+  const [resetPending, setResetPending] = useState(false);
+  const [forgotView, setForgotView] = useState(false);
   const [code, setCode] = useState('');
   const [verificationHint, setVerificationHint] = useState('');
   const [resendBusy, setResendBusy] = useState(false);
@@ -38,7 +40,7 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
     if (mode === 'register' && password.length < 8) invalid.password = 'Use at least 8 characters for your password.';
     if (mode === 'login' && !password) invalid.password = 'Enter your password, or choose email-code sign-in below.';
     setFieldErrors(invalid);
-    if (Object.keys(invalid).length) return;
+    if (Object.keys(invalid).length) { setBusy(false); return; }
     try {
       const result = await apiRequest<AuthResponse>(`/auth/${mode}`, '', { method: 'POST', body: JSON.stringify({ name: form.get('name'), email, password: form.get('password') }) });
       if (mode === 'register' && result.data.requiresEmailVerification) {
@@ -86,7 +88,30 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
     await sendCode(String(form.get('email') || ''), 'login');
   };
 
-  const changeMode = (next: 'login' | 'register') => { setMode(next); setError(''); setFieldErrors({}); setSignupPending(false); setLoginCodePending(false); setVerificationEmail(''); setCode(''); setResendMessage(''); navigate(next === 'login' ? '/login' : '/signup'); };
+  const requestPasswordReset = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setBusy(true); setError(''); setResendMessage('');
+    const form = new FormData(event.currentTarget), email = String(form.get('resetEmail') || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Enter a valid email address.'); setBusy(false); return; }
+    try {
+      await apiRequest('/auth/password-reset/request', '', { method: 'POST', body: JSON.stringify({ email }) });
+      setVerificationEmail(email); setCode(''); setResetPending(true);
+      setResendMessage('If an eligible account exists, a reset code has been sent. Check your inbox and spam folder.');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not request a password reset. Please try again.'); }
+    finally { setBusy(false); }
+  };
+
+  const confirmPasswordReset = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setBusy(true); setError('');
+    const form = new FormData(event.currentTarget), password = String(form.get('newPassword') || '');
+    if (password.length < 8) { setError('Use at least 8 characters for your new password.'); setBusy(false); return; }
+    try {
+      await apiRequest('/auth/password-reset/confirm', '', { method: 'POST', body: JSON.stringify({ email: verificationEmail, code, password }) });
+      setResetPending(false); setForgotView(false); setVerificationEmail(''); setCode(''); setError(''); setResendMessage('Password updated. Sign in with your new password.');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not reset your password. Check the code and try again.'); }
+    finally { setBusy(false); }
+  };
+
+  const changeMode = (next: 'login' | 'register') => { setMode(next); setError(''); setFieldErrors({}); setSignupPending(false); setLoginCodePending(false); setResetPending(false); setForgotView(false); setVerificationEmail(''); setCode(''); setResendMessage(''); navigate(next === 'login' ? '/login' : '/signup'); };
 
   const renderCodePanel = (signup: boolean) => (
     <div className="auth-fade">
@@ -129,7 +154,31 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
 
         <div className="auth-card">
           <div className="brand"><span className="logo"><img src="/rewisely-icon.png" alt="" /></span><span>Rewi<span>sely</span></span></div>
-          {signupPending ? renderCodePanel(true) : loginCodePending ? renderCodePanel(false) : isVerifyPage ? (
+          {resetPending ? (
+            <div className="auth-fade">
+              <div className="verify-icon"><KeyRound size={25} /></div><h1>Reset your password</h1>
+              <p>Enter the six-digit code sent to <b>{verificationEmail}</b> and choose a new password.</p>
+              <form onSubmit={confirmPasswordReset}>
+                <label className="field">Six-digit code<span className="input-icon"><MailCheck size={17} /><input required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" /></span></label>
+                <Field label="New password" name="newPassword" type="password" placeholder="At least 8 characters" icon={Lock} />
+                {error && <div className="auth-error" role="alert">{error}</div>}
+                <button className="primary submit" disabled={busy || code.length !== 6}>{busy ? <><Loader2 size={17} className="spin" /> Updating…</> : <>Update password <ArrowRight size={17} /></>}</button>
+              </form>
+              {resendMessage && <small className="verify-feedback" role="status">{resendMessage}</small>}
+              <button className="text-button auth-switch" onClick={() => { setResetPending(false); setCode(''); setError(''); }}>Back to sign in</button>
+            </div>
+          ) : forgotView ? (
+            <div className="auth-fade">
+              <div className="verify-icon"><MailCheck size={25} /></div><h1>Forgot your password?</h1>
+              <p>We’ll email you a one-time code so you can choose a new password.</p>
+              <form onSubmit={requestPasswordReset}>
+                <Field label="Email address" name="resetEmail" type="email" placeholder="you@example.com" icon={Mail} defaultValue={verificationEmail} />
+                {error && <div className="auth-error" role="alert">{error}</div>}
+                <button className="primary submit" disabled={busy}>{busy ? <><Loader2 size={17} className="spin" /> Sending code…</> : <>Send reset code <ArrowRight size={17} /></>}</button>
+              </form>
+              <button className="text-button auth-switch" onClick={() => { setForgotView(false); setError(''); setResendMessage(''); }}>Back to sign in</button>
+            </div>
+          ) : signupPending ? renderCodePanel(true) : loginCodePending ? renderCodePanel(false) : isVerifyPage ? (
             <div className="auth-fade">
               <div className="verify-icon"><MailCheck size={25} /></div><h1>Verify your email</h1>
               <p>Enter your signup email to receive a fresh verification code.</p>
@@ -149,6 +198,7 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
                   {mode === 'register' && <Field label="Name" name="name" placeholder="Your name" icon={User} error={fieldErrors.name} onChange={() => setFieldErrors(value => ({ ...value, name: '' }))} />}
                   <Field label="Email" name="email" type="email" placeholder="you@example.com" icon={Mail} error={fieldErrors.email} onChange={() => setFieldErrors(value => ({ ...value, email: '' }))} />
                   <Field label="Password" name="password" type="password" placeholder="At least 8 characters" icon={Lock} error={fieldErrors.password} onChange={() => setFieldErrors(value => ({ ...value, password: '' }))} />
+                  {mode === 'login' && <button type="button" className="text-button forgot-password" onClick={() => { setError(''); setResendMessage(''); setResetPending(false); setVerificationEmail(''); setCode(''); setResendIsError(false); setSignupPending(false); setLoginCodePending(false); setMode('login'); setForgotView(true); }}>Forgot password?</button>}
                   {error && <div className="auth-error" role="alert">{error}</div>}
                   {mode === 'login' && verificationEmail && <button type="button" className="text-button resend-inline" disabled={resendBusy} onClick={async () => { if (await sendCode(verificationEmail, 'verification')) setSignupPending(true); }}>{resendBusy ? 'Sending…' : 'Send email verification code'}</button>}
                   <button className="primary submit" disabled={busy}>{busy ? <><Loader2 size={17} className="spin" /> Please wait…</> : <>{mode === 'login' ? 'Sign in with password' : 'Create account'} <ArrowRight size={17} /></>}</button>

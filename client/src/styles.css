@@ -913,7 +913,7 @@ h1 { margin: 0; font: 700 29px/1.15 var(--font-display); letter-spacing: -0.035e
 .revision-plan-card > b { color: var(--primary); font-size: 13px; }
 .revision-plan-card .soft { align-self: flex-start; }
 
-.tracking { padding-top: 20px; }
+.tracking { padding-top: 8px; }
 .tracking-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0; }
 .tracking-summary div { padding: 18px; border-radius: 16px; background: linear-gradient(135deg, var(--primary-soft), var(--surface-2)); border: 1px solid var(--primary-soft-2); }
 .tracking-summary b { display: block; font: 700 25px var(--font-display); color: var(--primary); }
@@ -927,7 +927,7 @@ h1 { margin: 0; font: 700 29px/1.15 var(--font-display); letter-spacing: -0.035e
 .timeline-shell {
   overflow-x: auto;
   margin: 12px 0 14px;
-  padding: 104px 8px 20px;
+  padding: 70px 8px 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
@@ -1178,7 +1178,7 @@ h1 { margin: 0; font: 700 29px/1.15 var(--font-display); letter-spacing: -0.035e
   .full { overflow-x: auto; }
   .table { min-width: 620px; }
   .tracking-summary { grid-template-columns: 1fr; }
-  .timeline-shell { padding-top: 104px; }
+  .timeline-shell { padding-top: 70px; }
   .timeline-tooltip { left: 12px; transform: none; }
   .timeline-tooltip::after { left: 20px; }
   .weekly-main { padding: 22px 16px; }
