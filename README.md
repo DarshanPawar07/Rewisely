@@ -46,6 +46,7 @@ The Vite client normally uses port 5173. The API is configured for port 5000.
 | server | `JWT_SECRET` | JWT signing secret |
 | server | `PORT` | API listening port |
 | server | `CLIENT_URL` | Allowed browser origin(s) |
+| server | `CLIENT_REDIRECT_URL` | Frontend origin for OAuth callback redirects; set to the deployed Vercel URL |
 | server | `GMAIL_USER` | Gmail account used to send verification and login-code emails |
 | server | `GMAIL_APP_PASSWORD` | Google App Password for Gmail SMTP (keep this secret) |
 | server | `EMAIL_FROM` | Optional sender label/address; normally `Rewisely <same-gmail-address>` |

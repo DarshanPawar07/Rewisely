@@ -10,6 +10,24 @@ class LoginCodeDto { @IsEmail() email!: string; }
 class VerifyLoginCodeDto { @IsEmail() email!: string; @IsString() @Matches(/^\d{6}$/) code!: string; }
 class RequestPasswordResetDto { @IsEmail() email!: string; }
 class ResetPasswordDto { @IsEmail() email!: string; @IsString() @Matches(/^\d{6}$/) code!: string; @IsString() @MinLength(8) @MaxLength(128) password!: string; }
+function clientOrigin() {
+  const redirectUrl = process.env.CLIENT_REDIRECT_URL?.trim();
+  if (redirectUrl) {
+    try { return new URL(redirectUrl).origin; } catch { /* Fall back to CLIENT_URL candidates. */ }
+  }
+
+  const candidates = process.env.CLIENT_URL?.split(',').map(value => value.trim()).filter(Boolean) ?? [];
+  for (const candidate of candidates) {
+    try {
+      const url = new URL(candidate);
+      if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(url.hostname)) return url.origin;
+    } catch { /* Ignore invalid candidates. */ }
+  }
+  if (candidates[0]) {
+    try { return new URL(candidates[0]).origin; } catch { /* Use local development default. */ }
+  }
+  return 'http://localhost:5173';
+}
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
@@ -22,6 +40,6 @@ export class AuthController {
   @Post('password-reset/request') async requestPasswordReset(@Body() body: RequestPasswordResetDto) { await this.auth.requestPasswordReset(body.email); return { success: true, data: { message: 'If an eligible account exists, a password reset code will be sent shortly.' } }; }
   @Post('password-reset/confirm') async resetPassword(@Body() body: ResetPasswordDto) { await this.auth.resetPassword(body.email, body.code, body.password); return { success: true, data: { message: 'Password updated. You can now sign in.' } }; }
   @Get('google') @Redirect() google() { return { url: this.auth.googleAuthorizationUrl() }; }
-  @Get('google/callback') @Redirect() async googleCallback(@Query('code') code?: string, @Query('state') state?: string) { if (!code || !state) return { url: `${process.env.CLIENT_URL}/?oauth_error=missing_google_response` }; try { const result = await this.auth.googleCallback(code, state); return { url: `${process.env.CLIENT_URL}/?oauth_token=${encodeURIComponent(result.token)}` }; } catch { return { url: `${process.env.CLIENT_URL}/?oauth_error=google_sign_in_failed` }; } }
+  @Get('google/callback') @Redirect() async googleCallback(@Query('code') code?: string, @Query('state') state?: string) { const client=clientOrigin(); if (!code || !state) return { url: `${client}/login?oauth_error=missing_google_response` }; try { const result = await this.auth.googleCallback(code, state); return { url: `${client}/login?oauth_token=${encodeURIComponent(result.token)}` }; } catch { return { url: `${client}/login?oauth_error=google_sign_in_failed` }; } }
   @Get('me') @UseGuards(JwtAuthGuard) async me(@CurrentUser() user: AuthenticatedUser) { return { success: true, data: await this.auth.me(user.id) }; }
 }
