@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Controller, Get, Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { SubjectsModule } from './subjects/subjects.module';
@@ -10,5 +10,10 @@ import { AccountModule } from './account/account.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WeeklyTargetsModule } from './weekly-targets/weekly-targets.module';
 import { StudyModule } from './track-study/track-study.module';
-@Module({ imports: [PrismaModule, AuthModule, SubjectsModule, TopicsModule, RevisionsModule, TasksModule, DashboardModule, AccountModule, AnalyticsModule, WeeklyTargetsModule, StudyModule] })
+@Controller()
+class HealthController {
+  @Get('health') health() { return { status: 'ok', service: 'rewisely-api' }; }
+}
+
+@Module({ controllers: [HealthController], imports: [PrismaModule, AuthModule, SubjectsModule, TopicsModule, RevisionsModule, TasksModule, DashboardModule, AccountModule, AnalyticsModule, WeeklyTargetsModule, StudyModule] })
 export class AppModule {}

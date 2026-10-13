@@ -1,5 +1,15 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+/** Wake a sleeping host without blocking the page that the user is opening. */
+export async function wakeBackend() {
+  const healthUrl = `${API_URL.replace(/\/api\/?$/, '')}/health`;
+  try {
+    await fetch(healthUrl, { method: 'GET', cache: 'no-store' });
+  } catch {
+    // A cold start or temporary network failure should never stop the UI rendering.
+  }
+}
+
 export type ApiResponse<T> = { success: boolean; data: T };
 
 export async function apiRequest<T>(path: string, token: string, options: RequestInit = {}) {
