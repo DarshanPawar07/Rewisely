@@ -16,7 +16,7 @@ type Guide = {
   sections: { id: string; heading: string; content: string[] }[];
 };
 
-const guides: Guide[] = [
+export const guides: Guide[] = [
   {
     slug: 'spaced-revision', title: 'A practical guide to spaced revision', cardTitle: 'How to use spaced revision to remember more',
     description: 'Learn how spaced revision works, how to plan useful review sessions, and how to build a repeatable revision routine around what you have studied.',
