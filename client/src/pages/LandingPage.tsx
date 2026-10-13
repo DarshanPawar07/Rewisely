@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CalendarDays, Check, CheckCircle2, Clock3, Flame, ListChecks, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { SeoMeta } from './GuidePages';
 
 type Props = { theme: 'light' | 'dark'; onToggleTheme: () => void };
 
@@ -13,10 +14,11 @@ const features = [
 export function LandingPage({ theme, onToggleTheme }: Props) {
   return (
     <div className="landing-page">
+      <SeoMeta title="Rewisely — Plan revisions and build better study habits" description="Plan spaced revision, organise study tasks, and track your progress across subjects with Rewisely, a calmer study-planning workspace." path="/" />
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link>
         <nav className="landing-nav" aria-label="Main navigation">
-          <a href="#features">Features</a><a href="#how-it-works">How it works</a>
+          <a href="#features">Features</a><a href="#how-it-works">How it works</a><Link to="/guides">Study guides</Link>
         </nav>
         <div className="landing-actions">
           <button className="landing-theme" onClick={onToggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>{theme === 'dark' ? '☀' : '☾'}</button>
@@ -61,7 +63,7 @@ export function LandingPage({ theme, onToggleTheme }: Props) {
 
         <section className="landing-bottom-cta"><div><span>YOUR STUDY SPACE IS READY</span><h2>Start with one topic.</h2><p>Build a routine that helps your learning stick.</p></div><Link className="landing-signup landing-cta" to="/signup">Get started for free <ArrowRight size={17} /></Link></section>
       </main>
-      <footer className="landing-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Plan a little. Remember a lot.</small></footer>
+      <footer className="landing-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Plan a little. Remember a lot.</small><Link className="landing-guides-link" to="/guides">Study guides</Link></footer>
     </div>
   );
 }
