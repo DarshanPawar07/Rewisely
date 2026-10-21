@@ -28,12 +28,27 @@ export class AuthService {
     return createHmac('sha256', this.secret()).update(`${purpose}:${userId}:${code}`).digest('hex');
   }
 
+  private async sendReservedCode(user: { id: string; email: string; name: string }, code: string, codeHash: string, purpose: 'verification' | 'login' | 'password-reset') {
+    try {
+      await this.emailService.sendOtp(user.email, user.name, code, purpose);
+    } catch (error) {
+      // A failed SMTP attempt must not consume the cooldown or strand an unseen code.
+      if (purpose === 'verification') {
+        await this.prisma.$executeRaw`UPDATE "User" SET "emailVerificationTokenHash" = NULL, "emailVerificationExpiresAt" = NULL, "emailVerificationSentAt" = NULL, "emailVerificationAttempts" = 0 WHERE id = ${user.id} AND "emailVerificationTokenHash" = ${codeHash}`;
+      } else {
+        await this.prisma.$executeRaw`UPDATE "User" SET "emailLoginCodeHash" = NULL, "emailLoginCodeExpiresAt" = NULL, "emailLoginCodeSentAt" = NULL, "emailLoginCodeAttempts" = 0 WHERE id = ${user.id} AND "emailLoginCodeHash" = ${codeHash}`;
+      }
+      throw error;
+    }
+  }
+
   private async issueVerificationCode(user: { id: string; email: string; name: string }) {
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     const codeHash = this.codeHash('signup', user.id, code);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await this.prisma.$executeRaw`UPDATE "User" SET "emailVerified" = FALSE, "emailVerificationTokenHash" = ${codeHash}, "emailVerificationExpiresAt" = ${expiresAt}, "emailVerificationSentAt" = NOW(), "emailVerificationAttempts" = 0 WHERE id = ${user.id}`;
-    return this.emailService.sendOtp(user.email, user.name, code, 'verification');
+    await this.sendReservedCode(user, code, codeHash, 'verification');
+    return 'email';
   }
 
   async register(name: string, email: string, password: string) {
@@ -114,7 +129,7 @@ export class AuthService {
     const hash = this.codeHash('login', user.id, code);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await this.prisma.$executeRaw`UPDATE "User" SET "emailLoginCodeHash" = ${hash}, "emailLoginCodeExpiresAt" = ${expiresAt}, "emailLoginCodeSentAt" = NOW(), "emailLoginCodeAttempts" = 0 WHERE id = ${user.id}`;
-    await this.emailService.sendOtp(user.email, user.name, code, 'login');
+    await this.sendReservedCode(user, code, hash, 'login');
   }
 
   async loginWithCode(email: string, code: string) {
@@ -146,7 +161,7 @@ export class AuthService {
     const hash = this.codeHash('password-reset', user.id, code);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await this.prisma.$executeRaw`UPDATE "User" SET "emailLoginCodeHash" = ${hash}, "emailLoginCodeExpiresAt" = ${expiresAt}, "emailLoginCodeSentAt" = NOW(), "emailLoginCodeAttempts" = 0 WHERE id = ${user.id}`;
-    await this.emailService.sendOtp(user.email, user.name, code, 'password-reset');
+    await this.sendReservedCode(user, code, hash, 'password-reset');
   }
 
   async resetPassword(email: string, code: string, password: string) {
