@@ -11,3 +11,4 @@ server.env
 *.log
 client/.env
 server/.env
+brag-output-*/

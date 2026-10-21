@@ -11,10 +11,34 @@ export function WeeklyTargetDetailPage({ token }: { token: string }) {
   const [target, setTarget] = useState<any>(null);
   const [task, setTask] = useState('');
   const [error, setError] = useState('');
-  const load = async () => { try { const result = await apiRequest<any>(`/weekly-targets/${targetId}`, token); setTarget(result.data); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load weekly target'); } };
+  const [actionError, setActionError] = useState('');
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const [adding, setAdding] = useState(false);
+  const load = async () => { setError(''); try { const result = await apiRequest<any>(`/weekly-targets/${targetId}`, token); setTarget(result.data); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load weekly target'); } };
   useEffect(() => { void load(); }, [targetId, token]);
-  const toggle = async (item: any) => { await apiRequest(`/weekly-targets/${targetId}/tasks/${item.id}`, token, { method: 'PATCH', body: JSON.stringify({ completed: !item.completed }) }); await load(); };
-  const add = async (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); if (!task.trim()) return; await apiRequest(`/weekly-targets/${targetId}/tasks`, token, { method: 'POST', body: JSON.stringify({ title: task }) }); setTask(''); await load(); };
+  const toggle = async (item: any) => {
+    const id = String(item.id);
+    if (pending.has(id)) return;
+    const previous = item.completed;
+    setActionError(''); setPending(current => new Set(current).add(id));
+    setTarget((current: any) => ({ ...current, tasks: current.tasks.map((task: any) => task.id === item.id ? { ...task, completed: !previous } : task) }));
+    try {
+      const result = await apiRequest<any>(`/weekly-targets/${targetId}/tasks/${item.id}`, token, { method: 'PATCH', body: JSON.stringify({ completed: !previous }) });
+      setTarget((current: any) => ({ ...current, tasks: current.tasks.map((task: any) => task.id === item.id ? result.data : task) }));
+    } catch (reason) {
+      setTarget((current: any) => ({ ...current, tasks: current.tasks.map((task: any) => task.id === item.id ? { ...task, completed: previous } : task) }));
+      setActionError(reason instanceof Error ? reason.message : 'Could not update task. Please try again.');
+    } finally { setPending(current => { const next = new Set(current); next.delete(id); return next; }); }
+  };
+  const add = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); const title = task.trim(); if (!title || adding) return;
+    setAdding(true); setActionError('');
+    try {
+      const result = await apiRequest<any>(`/weekly-targets/${targetId}/tasks`, token, { method: 'POST', body: JSON.stringify({ title }) });
+      setTarget((current: any) => ({ ...current, tasks: [...current.tasks, result.data] })); setTask('');
+    } catch (reason) { setActionError(reason instanceof Error ? reason.message : 'Could not add task. Please try again.'); }
+    finally { setAdding(false); }
+  };
 
   if (error) return (
     <section className="panel full weekly-panel">
@@ -54,7 +78,7 @@ export function WeeklyTargetDetailPage({ token }: { token: string }) {
 
       <div className="weekly-task-list">
         {target.tasks.map((item: any) => (
-          <button className={'weekly-task ' + (item.completed ? 'checked' : '')} onClick={() => void toggle(item)} key={item.id}>
+          <button className={'weekly-task ' + (item.completed ? 'checked' : '')} onClick={() => void toggle(item)} disabled={pending.has(String(item.id))} key={item.id} aria-pressed={item.completed}>
             <span>{item.completed && <Check size={15} />}</span>
             <b>{item.title}</b>
             <small>{item.completed ? 'Completed' : 'Mark complete'}</small>
@@ -63,9 +87,10 @@ export function WeeklyTargetDetailPage({ token }: { token: string }) {
         {!total && <div className="empty-state"><span className="empty-art"><Plus size={26} /></span><p>No tasks yet. Add your first task below.</p></div>}
       </div>
 
+      {actionError && <p className="form-error" role="alert">{actionError}</p>}
       <form className="inline-form" onSubmit={add}>
-        <input value={task} onChange={event => setTask(event.target.value)} placeholder={'Add a task to ' + target.name} />
-        <button className="primary"><Plus size={16} /> Add task</button>
+        <input value={task} onChange={event => setTask(event.target.value)} maxLength={160} placeholder={'Add a task to ' + target.name} aria-label="New weekly task" />
+        <button className="primary" disabled={adding || !task.trim()}>{adding ? <><Loader2 size={16} className="spin" /> Adding…</> : <><Plus size={16} /> Add task</>}</button>
       </form>
     </section>
   );

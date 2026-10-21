@@ -1,23 +1,23 @@
 import { Priority, Recurrence, TaskCategory } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateTaskDto {
-  @IsString() @MinLength(1) title!: string;
-  @IsOptional() @IsString() description?: string;
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value) @IsString() @MinLength(1) @MaxLength(160) title!: string;
+  @IsOptional() @IsString() @MaxLength(2000) description?: string;
   @IsOptional() @IsDateString() dueDate?: string;
   @IsOptional() @IsEnum(Priority) priority?: Priority;
   @IsOptional() @IsEnum(TaskCategory) category?: TaskCategory;
   @IsOptional() @IsEnum(Recurrence) recurrenceType?: Recurrence;
 }
 export class UpdateTaskDto {
-  @IsOptional() @IsString() @MinLength(1) title?: string;
-  @IsOptional() @IsString() description?: string;
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value) @IsOptional() @IsString() @MinLength(1) @MaxLength(160) title?: string;
+  @IsOptional() @IsString() @MaxLength(2000) description?: string;
   @IsOptional() @IsDateString() dueDate?: string;
   @IsOptional() @IsEnum(Priority) priority?: Priority;
   @IsOptional() @IsEnum(TaskCategory) category?: TaskCategory;
   @IsOptional() @IsEnum(Recurrence) recurrenceType?: Recurrence;
 }
 export class CompleteTaskDto {
-  @Transform(({ value }) => value === true || value === 'true') @IsBoolean() completed!: boolean;
+  @IsBoolean() completed!: boolean;
 }

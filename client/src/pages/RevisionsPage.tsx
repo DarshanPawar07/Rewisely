@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, Check, CheckCircle2, Inbox, LayoutGrid, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Revision } from '../types/models';
-import { apiRequest } from '../services/api';
 
-type Props = { revisions: Revision[]; complete: (id: string | number) => void; remove: (id: string | number) => void; add: () => void };
+type Props = { revisions: Revision[]; complete: (id: string | number) => void; remove: (id: string | number) => void; update: (id: string | number, date: string) => Promise<void>; add: () => void };
 
 const statusClass = (status: string) => status.toLowerCase().replace(' ', '-');
 const shortDate = (date: string) => new Date(date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-export function RevisionsPage({ revisions, complete, remove, add }: Props) {
+export function RevisionsPage({ revisions, complete, remove, update, add }: Props) {
   const navigate = useNavigate(), location = useLocation();
   const [menu, setMenu] = useState<string | null>(null);
   useEffect(() => { const close = () => setMenu(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
@@ -38,7 +37,7 @@ export function RevisionsPage({ revisions, complete, remove, add }: Props) {
       </div>
 
       {plan ? (
-        <Tracking items={plan} complete={complete} remove={remove} back={() => navigate('/revisions')} />
+        <Tracking items={plan} complete={complete} remove={remove} update={update} back={() => navigate('/revisions')} />
       ) : view === 'plans' ? (
         <div className="plan-grid">
           {grouped.map(items => {
@@ -85,13 +84,13 @@ export function RevisionsPage({ revisions, complete, remove, add }: Props) {
           )}
         </div>
       ) : (
-        <RevisionTable items={view === 'completed' ? completed : upcoming} complete={complete} remove={remove} />
+        <RevisionTable items={view === 'completed' ? completed : upcoming} complete={complete} remove={remove} update={update} />
       )}
     </section>
   );
 }
 
-function Tracking({ items, complete, remove, back }: { items: Revision[]; complete: Props['complete']; remove: Props['remove']; back: () => void }) {
+function Tracking({ items, complete, remove, update, back }: { items: Revision[]; complete: Props['complete']; remove: Props['remove']; update: Props['update']; back: () => void }) {
   const done = items.filter(item => item.status === 'Completed').length;
   const percent = items.length ? Math.round(done / items.length * 100) : 0;
   return (
@@ -125,31 +124,45 @@ function Tracking({ items, complete, remove, back }: { items: Revision[]; comple
           ))}
         </div>
       </div>
-      <RevisionTable items={items} complete={complete} remove={remove} />
+      <RevisionTable items={items} complete={complete} remove={remove} update={update} />
     </div>
   );
 }
 
-function RevisionTable({ items, complete, remove }: { items: Revision[]; complete: Props['complete']; remove: Props['remove'] }) {
-  const edit = async (item: Revision) => {
-    const date = window.prompt('New revision date (YYYY-MM-DD)', item.date);
-    if (!date) return;
-    await apiRequest(`/revisions/${item.id}`, localStorage.getItem('reviseme_token') || '', { method: 'PATCH', body: JSON.stringify({ scheduledAt: new Date(date + 'T12:00:00').toISOString() }) });
-    window.location.reload();
+function RevisionTable({ items, complete, remove, update }: { items: Revision[]; complete: Props['complete']; remove: Props['remove']; update: Props['update'] }) {
+  const [editing, setEditing] = useState<string | number | null>(null);
+  const [draftDate, setDraftDate] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const beginEdit = (item: Revision) => { setEditing(item.id); setDraftDate(item.date); setError(''); };
+  const saveEdit = async (item: Revision) => {
+    if (!draftDate || saving) return;
+    setSaving(true); setError('');
+    try {
+      await update(item.id, new Date(draftDate + 'T12:00:00').toISOString());
+      setEditing(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not update revision date. Please try again.');
+    } finally { setSaving(false); }
   };
   return (
     <div className="table revision-table">
       <div className="thead"><span>REVISION</span><span>SCHEDULED DATE</span><span>STATUS</span><span>COMPLETED ON / ACTION</span></div>
+      {error && <p className="revision-edit-error" role="alert">{error}</p>}
       {items.map(item => (
         <div className="tr" key={item.id}>
           <div><b>{item.topic}</b><small>Revision #{item.number || 1}</small></div>
-          <span>{new Date(item.date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <span>{editing === item.id
+            ? <input aria-label={'New date for revision ' + (item.number || 1)} type="date" value={draftDate} onChange={event => setDraftDate(event.target.value)} />
+            : new Date(item.date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           <span><em className={'badge ' + statusClass(item.status)}>{item.status}</em></span>
           <span className="actions">
             {item.status === 'Completed'
               ? <span className="confidence">{item.completedAt ? new Date(item.completedAt).toLocaleDateString() : 'Completed'}</span>
               : <button className="soft" onClick={() => complete(item.id)}><Check size={14} /> Complete</button>}
-            <button className="edit" onClick={() => void edit(item)}><Pencil size={13} /> Edit</button>
+            {editing === item.id
+              ? <><button className="edit" disabled={saving || !draftDate} onClick={() => void saveEdit(item)}>{saving ? 'Saving…' : 'Save date'}</button><button className="delete" disabled={saving} onClick={() => setEditing(null)}>Cancel</button></>
+              : <button className="edit" onClick={() => beginEdit(item)}><Pencil size={13} /> Edit</button>}
             <button className="delete" onClick={() => remove(item.id)}><Trash2 size={13} /> Delete</button>
           </span>
         </div>

@@ -20,16 +20,35 @@ export class TasksService {
     return this.prisma.task.update({ where: { id }, data: { ...(data.title !== undefined && { title: data.title.trim() }), ...(data.description !== undefined && { description: data.description.trim() || null }), ...(dueDate !== undefined && { dueDate }), ...(data.priority && { priority: data.priority }), ...(data.category && { category: data.category }), ...(data.recurrenceType && { recurrenceType: data.recurrenceType, isRecurring: data.recurrenceType !== Recurrence.NONE }) } });
   }
   async complete(userId: string, id: string, completed: boolean) {
-    const task = await this.get(userId, id);
-    const updated = await this.prisma.task.update({ where: { id }, data: { completed, completedAt: completed ? new Date() : null } });
-    if (completed && task.isRecurring && task.dueDate) {
-      const next = new Date(task.dueDate);
-      if (task.recurrenceType === Recurrence.DAILY) next.setUTCDate(next.getUTCDate() + 1);
-      if (task.recurrenceType === Recurrence.WEEKLY) next.setUTCDate(next.getUTCDate() + 7);
-      if (task.recurrenceType === Recurrence.MONTHLY) next.setUTCMonth(next.getUTCMonth() + 1);
-      if (task.recurrenceType !== Recurrence.NONE) await this.prisma.task.create({ data: { userId, title: task.title, description: task.description, dueDate: next, priority: task.priority, category: task.category, isRecurring: true, recurrenceType: task.recurrenceType } });
-    }
-    return updated;
+    return this.prisma.$transaction(async tx => {
+      const task = await tx.task.findFirst({ where: { id, userId } });
+      if (!task) throw new NotFoundException('Task not found');
+      if (task.completed === completed) return task;
+
+      // The conditional update makes this transition idempotent under rapid/double clicks.
+      // Only the request that actually changes incomplete -> complete creates the next occurrence.
+      const transition = await tx.task.updateMany({
+        where: { id, userId, completed: task.completed },
+        data: { completed, completedAt: completed ? new Date() : null },
+      });
+      if (!transition.count) return tx.task.findFirstOrThrow({ where: { id, userId } });
+
+      if (completed && task.isRecurring && task.dueDate && task.recurrenceType !== Recurrence.NONE) {
+        const next = new Date(task.dueDate);
+        if (task.recurrenceType === Recurrence.DAILY) next.setUTCDate(next.getUTCDate() + 1);
+        if (task.recurrenceType === Recurrence.WEEKLY) next.setUTCDate(next.getUTCDate() + 7);
+        if (task.recurrenceType === Recurrence.MONTHLY) {
+          const originalDay = next.getUTCDate();
+          next.setUTCDate(1);
+          next.setUTCMonth(next.getUTCMonth() + 1);
+          const finalDayOfMonth = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0)).getUTCDate();
+          next.setUTCDate(Math.min(originalDay, finalDayOfMonth));
+        }
+        await tx.task.create({ data: { userId, title: task.title, description: task.description, dueDate: next, priority: task.priority, category: task.category, isRecurring: true, recurrenceType: task.recurrenceType } });
+      }
+
+      return tx.task.findFirstOrThrow({ where: { id, userId } });
+    });
   }
   async remove(userId: string, id: string) { await this.get(userId, id); await this.prisma.task.delete({ where: { id } }); return { id }; }
 }

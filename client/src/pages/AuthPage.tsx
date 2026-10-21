@@ -27,6 +27,10 @@ export function AuthPage({ onLogin, theme, onToggleTheme }: Props) {
   const [resendIsError, setResendIsError] = useState(false);
 
   useEffect(() => setMode(location.pathname === '/signup' ? 'register' : 'login'), [location.pathname]);
+  useEffect(() => {
+    const oauthError = new URLSearchParams(location.search).get('oauth_error');
+    if (oauthError) setError('Google sign-in could not be completed. Please try again, or use email and password.');
+  }, [location.search]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setBusy(true); setError('');
