@@ -26,6 +26,8 @@ export function StudyStepsPage({ token }: { token: string }) {
   const [steps, setSteps] = useState<DraftStep[]>([]);
   const [scope, setScope] = useState<'subject' | 'all'>('subject');
   const [loading, setLoading] = useState(true);
+  const [allSubjectsLoaded, setAllSubjectsLoaded] = useState(false);
+  const [allSubjectsLoading, setAllSubjectsLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -34,23 +36,16 @@ export function StudyStepsPage({ token }: { token: string }) {
 
   const subject = subjects.find(item => item.id === subjectId) || null;
 
-  const load = async () => {
-    const list = (await apiRequest<StudySubject[]>('/study', token)).data;
-    setSubjects(list);
-    const current = list.find(item => item.id === subjectId);
-    if (current) setSteps(current.studySteps.map(fromSaved));
-    return current;
-  };
   useEffect(() => {
     let live = true;
     setLoading(true);
     setError('');
-    apiRequest<StudySubject[]>('/study', token)
+    apiRequest<StudySubject>(`/study/subjects/${subjectId}`, token)
       .then(result => {
         if (!live) return;
-        setSubjects(result.data);
-        const current = result.data.find(item => item.id === subjectId);
-        if (current) setSteps(current.studySteps.map(fromSaved));
+        setSubjects([result.data]);
+        setAllSubjectsLoaded(false);
+        setSteps(result.data.studySteps.map(fromSaved));
       })
       .catch(reason => { if (live) setError(reason instanceof Error ? reason.message : 'Could not load subject steps'); })
       .finally(() => { if (live) setLoading(false); });
@@ -134,13 +129,29 @@ export function StudyStepsPage({ token }: { token: string }) {
     try {
       const payload = steps.map(step => ({ ...(step.id ? { id: step.id } : {}), name: normaliseName(step.name), colour: step.colour }));
       const result = await apiRequest<StudySubject>(`/study/subjects/${subjectId}/steps`, token, { method: 'PUT', body: JSON.stringify({ steps: payload, scope }) });
-      await load();
+      if (scope === 'all') {
+        const refreshed = await apiRequest<StudySubject[]>('/study', token);
+        setSubjects(refreshed.data); setAllSubjectsLoaded(true);
+      } else {
+        setSubjects([result.data]); setAllSubjectsLoaded(false);
+      }
       setSteps(result.data.studySteps.map(fromSaved));
       setSaved(true);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save steps'); }
     finally { setBusy(false); }
   };
   const save = () => { if (!valid || busy) return; if (needsReview) setConfirming(true); else void commit(); };
+  const chooseScope = async (next: 'subject' | 'all') => {
+    if (next === 'subject') { setScope(next); return; }
+    if (allSubjectsLoaded) { setScope(next); return; }
+    setAllSubjectsLoading(true); setError('');
+    try {
+      const result = await apiRequest<StudySubject[]>('/study', token);
+      setSubjects(result.data); setAllSubjectsLoaded(true); setScope(next);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not load other subjects for the progress preview');
+    } finally { setAllSubjectsLoading(false); }
+  };
   const cancel = () => { if (changed && !window.confirm('Leave without saving your changes?')) return; navigate(`/study/subjects/${subjectId}`); };
 
   if (loading) return <section className="study-page" aria-busy="true"><div className="study-skeleton study-skeleton-banner" /><div className="study-skeleton" /></section>;
@@ -205,8 +216,8 @@ export function StudyStepsPage({ token }: { token: string }) {
 
           <fieldset className="study-scope"><legend className="sr-only">Apply changes to</legend>
             <div><b>Apply changes to</b><small>Subjects can keep their own workflows.</small></div>
-            <label className={scope === 'subject' ? 'on' : ''}><input type="radio" name="study-scope" checked={scope === 'subject'} onChange={() => setScope('subject')} /> Just {subject.name}</label>
-            <label className={scope === 'all' ? 'on' : ''}><input type="radio" name="study-scope" checked={scope === 'all'} onChange={() => setScope('all')} /> All subjects ({subjects.length})</label>
+            <label className={scope === 'subject' ? 'on' : ''}><input type="radio" name="study-scope" checked={scope === 'subject'} onChange={() => void chooseScope('subject')} /> Just {subject.name}</label>
+            <label className={scope === 'all' ? 'on' : ''}><input type="radio" name="study-scope" checked={scope === 'all'} disabled={allSubjectsLoading} onChange={() => void chooseScope('all')} /> {allSubjectsLoading ? 'Loading subjects…' : allSubjectsLoaded ? `All subjects (${subjects.length})` : 'All subjects'}</label>
           </fieldset>
           {scope === 'all' && subjects.length > 1 && (
             <div className="study-impact warn" role="status"><span><AlertTriangle size={18} /></span><div><b>This replaces the steps in every subject</b>

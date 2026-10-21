@@ -54,8 +54,11 @@ export class StudyService {
 
   /** True when a subject has no steps yet, or has revision topics that are not chapters yet. */
   private async needsSync(db: Prisma.TransactionClient, userId: string, subjectId: string) {
-    if (!(await db.studyStep.count({ where: { subjectId, active: true } }))) return true;
-    const topics = await db.topic.findMany({ where: { userId, subjectId }, select: { id: true } });
+    const [stepCount, topics] = await Promise.all([
+      db.studyStep.count({ where: { subjectId, active: true } }),
+      db.topic.findMany({ where: { userId, subjectId }, select: { id: true } }),
+    ]);
+    if (!stepCount) return true;
     if (!topics.length) return false;
     const linked = await db.studyChapter.count({ where: { legacyTopicId: { in: topics.map(topic => topic.id) } } });
     return linked < topics.length;
@@ -102,7 +105,9 @@ export class StudyService {
 
   async list(userId: string) {
     const subjects = await this.prisma.subject.findMany({ where: { userId }, select: { id: true }, orderBy: { name: 'asc' } });
-    for (const subject of subjects) await this.ensureSubject(userId, subject.id);
+    // Subjects are independent here. Serial checks make the study home wait on several
+    // database round trips per subject, so validate/sync them concurrently instead.
+    await Promise.all(subjects.map(subject => this.ensureSubject(userId, subject.id)));
     return this.prisma.subject.findMany({ where: { userId }, include: subjectInclude, orderBy: { name: 'asc' } });
   }
 
