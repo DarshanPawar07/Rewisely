@@ -6,7 +6,7 @@ import { build } from 'esbuild';
 const clientRoot = process.cwd();
 const require = createRequire(path.join(clientRoot, 'package.json'));
 const distRoot = path.join(clientRoot, 'dist');
-const siteUrl = 'https://rewisely-eta.vercel.app';
+const siteUrl = 'https://www.rewisely.online';
 const template = await readFile(path.join(distRoot, 'index.html'), 'utf8');
 const bundle = await build({
   absWorkingDir: clientRoot,
@@ -52,8 +52,31 @@ const { renderPublicPage, guides } = serverModule.exports;
     await writeFile(outputPath, html);
     console.log(`Prerendered ${page.path}`);
   }
+
+  const sitemap = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...pages.map(page => `  <url><loc>${siteUrl}${page.path}</loc></url>`),
+    '</urlset>',
+  ].join('\n');
+  await writeFile(path.join(distRoot, 'sitemap.xml'), `${sitemap}\n`);
 function withHead(html, { path: route, title, description }) {
   const canonical = `${siteUrl}${route}`;
+  const structuredData = route === '/'
+    ? [
+        { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', url: `${siteUrl}/` },
+        { '@context': 'https://schema.org', '@type': 'Organization', name: 'Rewisely', url: `${siteUrl}/`, logo: `${siteUrl}/rewisely-icon.png` },
+      ]
+    : route.startsWith('/guides/')
+      ? [
+          { '@context': 'https://schema.org', '@type': 'Article', headline: title, description, mainEntityOfPage: canonical, author: { '@type': 'Organization', name: 'Rewisely' }, publisher: { '@type': 'Organization', name: 'Rewisely', logo: { '@type': 'ImageObject', url: `${siteUrl}/rewisely-icon.png` } } },
+          { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+            { '@type': 'ListItem', position: 2, name: 'Study Guides', item: `${siteUrl}/guides` },
+            { '@type': 'ListItem', position: 3, name: title, item: canonical },
+          ] },
+        ]
+      : [];
   const tags = [
     `<meta name="description" content="${escapeAttribute(description)}" />`,
     '<meta name="robots" content="index,follow" />',
@@ -67,6 +90,7 @@ function withHead(html, { path: route, title, description }) {
     `<meta name="twitter:description" content="${escapeAttribute(description)}" />`,
     `<meta name="twitter:image" content="${siteUrl}/rewisely-icon.png" />`,
     `<link rel="canonical" href="${canonical}" />`,
+    ...(structuredData.length ? [`<script type="application/ld+json" data-rewisely-schema>${JSON.stringify(structuredData)}</script>`] : []),
   ].join('\n    ');
 
   return html

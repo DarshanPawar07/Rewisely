@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpenCheck, CalendarDays, Clock3, RefreshCw, Sparkles } from 'lucide-react';
 import './guides.css';
 
-const SITE_URL = 'https://rewisely-eta.vercel.app';
+const SITE_URL = 'https://www.rewisely.online';
 
 type Guide = {
   slug: string;
@@ -106,6 +106,26 @@ export function SeoMeta({ title, description, path, type = 'website', indexable 
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
     canonical.href = canonicalUrl;
+    const structuredData = path === '/'
+      ? [
+          { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', url: `${SITE_URL}/` },
+          { '@context': 'https://schema.org', '@type': 'Organization', name: 'Rewisely', url: `${SITE_URL}/`, logo: `${SITE_URL}/rewisely-icon.png` },
+        ]
+      : type === 'article'
+        ? [
+            { '@context': 'https://schema.org', '@type': 'Article', headline: title, description, mainEntityOfPage: canonicalUrl, author: { '@type': 'Organization', name: 'Rewisely' }, publisher: { '@type': 'Organization', name: 'Rewisely', logo: { '@type': 'ImageObject', url: `${SITE_URL}/rewisely-icon.png` } } },
+            { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+              { '@type': 'ListItem', position: 2, name: 'Study Guides', item: `${SITE_URL}/guides` },
+              { '@type': 'ListItem', position: 3, name: title, item: canonicalUrl },
+            ] },
+          ]
+        : [];
+    let schema = document.head.querySelector<HTMLScriptElement>('script[data-rewisely-schema]');
+    if (structuredData.length) {
+      if (!schema) { schema = document.createElement('script'); schema.type = 'application/ld+json'; schema.dataset.rewiselySchema = ''; document.head.appendChild(schema); }
+      schema.textContent = JSON.stringify(structuredData);
+    } else schema?.remove();
     return () => { document.querySelector('script[data-rewisely-schema]')?.remove(); };
   }, [title, description, path, type, indexable]);
   return null;
