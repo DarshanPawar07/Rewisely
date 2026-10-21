@@ -12,6 +12,13 @@ export class EmailService {
   }
 
   assertConfigured() {
+    if (process.env.RESEND_API_KEY) {
+      if (!process.env.EMAIL_FROM) {
+        throw new ServiceUnavailableException('Email delivery needs EMAIL_FROM configured with a sender on your verified domain, for example Rewisely <codes@mail.rewisely.online>.');
+      }
+      return;
+    }
+
     const user = process.env.GMAIL_USER;
     const appPassword = process.env.GMAIL_APP_PASSWORD;
     if ((user && !appPassword) || (!user && appPassword)) {
@@ -23,9 +30,10 @@ export class EmailService {
   }
 
   async sendOtp(email: string, name: string, code: string, purpose: 'verification' | 'login' | 'password-reset'): Promise<'email' | 'console'> {
+    const resendApiKey = process.env.RESEND_API_KEY;
     const user = process.env.GMAIL_USER;
     const appPassword = process.env.GMAIL_APP_PASSWORD;
-    if (!user || !appPassword) {
+    if (!resendApiKey && (!user || !appPassword)) {
       this.assertConfigured();
       this.logger.warn(`Email delivery is in development mode. ${purpose === 'verification' ? 'Signup verification' : purpose === 'password-reset' ? 'Password reset' : 'Login'} code for ${email}: ${code}`);
       return 'console';
@@ -42,8 +50,54 @@ export class EmailService {
       html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#22213a"><div style="padding:28px;border-radius:18px;background:#f5f3ff"><p style="color:#6a5cf5;font-size:13px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase">Rewisely</p><h1 style="font-size:24px">${verification ? 'Verify your email' : passwordReset ? 'Reset your password' : 'Sign in to Rewisely'}</h1><p>Hi ${safeName}, use this one-time code to ${verification ? 'activate your account' : passwordReset ? 'reset your password' : 'sign in'}:</p><p style="margin:28px 0;padding:16px;border-radius:12px;background:#fff;text-align:center;font-size:32px;font-weight:bold;letter-spacing:.28em;color:#5b45d6">${code}</p><p style="font-size:13px;color:#67657a">This code expires in 10 minutes and can only be used once. If you did not request it, you can ignore this email.</p></div></div>`,
     };
 
+    // Render Free blocks direct SMTP. Prefer a transactional HTTPS API there.
+    if (resendApiKey) {
+      const body = JSON.stringify({ from: message.from, to: [email], subject: message.subject, text: message.text, html: message.html });
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+            body,
+            signal: AbortSignal.timeout(12_000),
+          });
+          if (response.ok) {
+            const result = await response.json() as { id?: string };
+            this.logger.log(`Resend accepted ${purpose} email for ${email} (message ${result.id || 'accepted'})`);
+            return 'email';
+          }
+
+          const providerBody = await response.json().catch(() => ({})) as { message?: string; name?: string };
+          const providerMessage = providerBody.message || providerBody.name || `HTTP ${response.status}`;
+          const retryable = response.status === 429 || response.status >= 500;
+          this.logger.error(`Resend email attempt ${attempt}/2 failed for ${purpose} (${response.status}): ${providerMessage}`);
+          if (attempt === 1 && retryable) {
+            await new Promise(resolve => setTimeout(resolve, 750));
+            continue;
+          }
+          if (response.status === 401) throw new ServiceUnavailableException('The Resend API key is invalid. Update RESEND_API_KEY in the Render environment.');
+          if (response.status === 403) throw new ServiceUnavailableException('Resend rejected the sender. Verify rewisely.online in Resend and use an address on that verified domain in EMAIL_FROM.');
+          if (response.status === 429 || response.status >= 500) throw new ServiceUnavailableException('The email provider is temporarily unavailable. Please retry in a moment.');
+          throw new ServiceUnavailableException('The email provider rejected this message. Check the sender and recipient configuration.');
+        } catch (error) {
+          if (error instanceof ServiceUnavailableException) throw error;
+          const detail = error instanceof Error ? error.message : 'Unknown HTTPS request error';
+          this.logger.error(`Resend email attempt ${attempt}/2 failed for ${purpose}: ${detail}`);
+          if (attempt === 1) {
+            await new Promise(resolve => setTimeout(resolve, 750));
+            continue;
+          }
+          throw new ServiceUnavailableException('Could not connect to the email provider over HTTPS. Please retry in a moment.');
+        }
+      }
+      throw new ServiceUnavailableException('The email provider is temporarily unavailable. Please retry in a moment.');
+    }
+
     // Render instances can briefly lose outbound SMTP connectivity after waking.
     // Retry a fresh connection once for transient transport/provider failures only.
+    if (!user || !appPassword) {
+      throw new ServiceUnavailableException('Email delivery is not configured. Add RESEND_API_KEY or both Gmail SMTP credentials to the server environment.');
+    }
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
