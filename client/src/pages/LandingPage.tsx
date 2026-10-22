@@ -82,7 +82,7 @@ export function LandingPage({ theme, onToggleTheme }: Props) {
 
         <section className="landing-bottom-cta"><div><span>YOUR STUDY SPACE IS READY</span><h2>Start with one topic.</h2><p>Build a routine that helps your learning stick.</p></div><Link className="landing-signup landing-cta" to="/signup">Get started for free <ArrowRight size={17} /></Link></section>
       </main>
-      <footer className="landing-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Plan a little. Remember a lot.</small><Link className="landing-guides-link" to="/guides">Study guides</Link></footer>
+      <footer className="landing-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Plan a little. Remember a lot.</small><nav className="landing-footer-links" aria-label="More about Rewisely"><Link className="landing-guides-link" to="/guides">Study guides</Link><Link className="landing-guides-link" to="/about">About</Link><Link className="landing-guides-link" to="/contact">Contact</Link></nav></footer>
     </div>
   );
 }

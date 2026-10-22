@@ -22,7 +22,7 @@ import { StudyChapterPage } from './pages/study/StudyChapterPage';
 import { STUDY_FEATURE_LABEL } from './pages/study/labels';
 import { NotificationsMenu } from './components/NotificationsMenu';
 import { LandingPage } from './pages/LandingPage';
-import { GuideArticlePage, GuideIndexPage } from './pages/GuidePages';
+import { AboutPage, ContactPage, GuideArticlePage, GuideIndexPage } from './pages/GuidePages';
 import './styles.css';
 import './auth.css';
 import './landing.css';
@@ -48,6 +48,8 @@ function App(){const location=useLocation(),routerNavigate=useNavigate();const o
  useEffect(()=>{const onTheme=(event:Event)=>setTheme((event as CustomEvent<'light'|'dark'>).detail);window.addEventListener('revisely-theme',onTheme);return()=>window.removeEventListener('revisely-theme',onTheme)},[]);
  useEffect(()=>{setMenuOpen(false)},[location.pathname]);
  const hour=new Date().getHours(),greeting=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening',todayLabel=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),activeNav=page==='Tasks'?'Daily Tasks':page,attention=due.length+overdue.length,initials=(userName||'Student').split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+ if(location.pathname==='/about')return <AboutPage/>;
+ if(location.pathname==='/contact')return <ContactPage/>;
  if(location.pathname==='/guides'||location.pathname.startsWith('/guides/'))return <Routes><Route path="/guides" element={<GuideIndexPage/>}/><Route path="/guides/:slug" element={<GuideArticlePage/>}/><Route path="*" element={<GuideIndexPage/>}/></Routes>;
  if(!token&&location.pathname==='/')return <LandingPage theme={theme} onToggleTheme={()=>setTheme(t=>{const next=t==='dark'?'light':'dark';localStorage.setItem('revisely_theme_pref',next);return next})}/>;
  if(!token)return <><PrivateNoIndex/><Login theme={theme} onToggleTheme={()=>setTheme(t=>{const next=t==='dark'?'light':'dark';localStorage.setItem('revisely_theme_pref',next);return next})} onLogin={(value,name)=>{localStorage.setItem('reviseme_token',value);window.history.replaceState({},'','/dashboard');setPage('Dashboard');setUserName(name);setToken(value)}}/></>;

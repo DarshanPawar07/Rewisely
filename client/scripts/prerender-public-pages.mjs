@@ -35,6 +35,16 @@ const { renderPublicPage, guides } = serverModule.exports;
       title: 'Study Guides for Better Revision and Planning | Rewisely',
       description: 'Practical guides to exam study planning, spaced revision, active recall, managing a study backlog, and balancing subjects in a realistic week.',
     },
+    {
+      path: '/about',
+      title: 'About Rewisely | A Study Planner for Students',
+      description: 'Learn what Rewisely is: a study-planning workspace for organising subjects, topics, revision sessions, daily tasks, and weekly targets.',
+    },
+    {
+      path: '/contact',
+      title: 'Contact Rewisely | Help and Feedback',
+      description: 'Contact Rewisely with product feedback or bug reports through the public project support page.',
+    },
     ...guides.map(guide => ({
       path: `/guides/${guide.slug}`,
       title: `${guide.title} | Rewisely Study Guides`,

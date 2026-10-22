@@ -5,8 +5,6 @@
    - Every class name from the previous stylesheet is kept, so existing
      page components pick up the new look automatically.
    ===================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
-
 /* ---------- 1. Design tokens ---------- */
 :root {
   color-scheme: light;

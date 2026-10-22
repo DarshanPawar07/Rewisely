@@ -225,6 +225,51 @@ export function GuideIndexPage() {
   );
 }
 
+export function AboutPage() {
+  const description = 'Learn what Rewisely is: a study-planning workspace for organising subjects, topics, revision sessions, daily tasks, and weekly targets.';
+  return (
+    <div className="guides-page">
+      <SeoMeta title="About Rewisely | A Study Planner for Students" description={description} path="/about" />
+      <PublicHeader />
+      <main className="public-info-main">
+        <Link className="guide-back" to="/">Home</Link>
+        <article className="public-info-card">
+          <span className="guide-kicker"><Sparkles size={14} /> ABOUT REWISELY</span>
+          <h1>A calmer place to organise your study routine.</h1>
+          <p>Rewisely is a study-planning workspace for students who want a clearer view of what to study and when to revisit it. It brings subjects, topics, revision sessions, daily tasks, and weekly targets together in one place.</p>
+          <h2>Made for your own syllabus</h2>
+          <p>Whether you’re preparing for JEE, NEET, UPSC, MPSC, school, or college exams, you can add your own subjects and topics and shape a workflow that fits your learning routine. Rewisely helps you organise your plan; it does not provide exam notes or promise a particular result.</p>
+          <h2>Keep the next step visible</h2>
+          <p>Plan a topic, choose when to review it, and track what you complete. The aim is to make it easier to return to your learning consistently—not to make your study plan another source of pressure.</p>
+          <Link className="landing-signup" to="/signup">Start planning <ArrowRight size={16} /></Link>
+        </article>
+      </main>
+      <PublicFooter />
+    </div>
+  );
+}
+
+export function ContactPage() {
+  const description = 'Contact Rewisely with product feedback or bug reports through the public project support page.';
+  return (
+    <div className="guides-page">
+      <SeoMeta title="Contact Rewisely | Help and Feedback" description={description} path="/contact" />
+      <PublicHeader />
+      <main className="public-info-main">
+        <Link className="guide-back" to="/">Home</Link>
+        <article className="public-info-card">
+          <span className="guide-kicker"><BookOpenCheck size={14} /> CONTACT</span>
+          <h1>Questions or feedback?</h1>
+          <p>For a bug report, feature suggestion, or question about Rewisely, use the project’s public support page. Include what you were trying to do and what happened so it’s easier to understand the issue.</p>
+          <p>Please don’t post passwords, sign-in codes, or private study information in a public report.</p>
+          <a className="landing-signup" href="https://github.com/DarshanPawar07/Rewisely/issues" target="_blank" rel="noreferrer">Open the support page <ArrowRight size={16} /></a>
+        </article>
+      </main>
+      <PublicFooter />
+    </div>
+  );
+}
+
 export function GuideArticlePage() {
   const { slug = '' } = useParams();
   const guide = guides.find(item => item.slug === slug);
@@ -255,9 +300,9 @@ function GuideNotFound() {
 }
 
 function PublicHeader() {
-  return <header className="guides-header"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><nav aria-label="Public navigation"><Link to="/guides">Study guides</Link><Link to="/#features">Features</Link></nav><div><Link className="landing-login" to="/login">Log in</Link><Link className="landing-signup" to="/signup">Sign up <ArrowRight size={15} /></Link></div></header>;
+  return <header className="guides-header"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><nav aria-label="Public navigation"><Link to="/guides">Study guides</Link><Link to="/about">About</Link><Link to="/contact">Contact</Link><Link to="/#features">Features</Link></nav><div><Link className="landing-login" to="/login">Log in</Link><Link className="landing-signup" to="/signup">Sign up <ArrowRight size={15} /></Link></div></header>;
 }
 
 function PublicFooter() {
-  return <footer className="guides-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Practical ideas for a more thoughtful study routine.</small><Link to="/guides">Study guides</Link></footer>;
+  return <footer className="guides-footer"><Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link><small>Practical ideas for a more thoughtful study routine.</small><Link to="/guides">Study guides</Link><Link to="/about">About</Link><Link to="/contact">Contact</Link></footer>;
 }
