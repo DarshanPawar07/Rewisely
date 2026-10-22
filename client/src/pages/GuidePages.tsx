@@ -85,6 +85,75 @@ export const guides: Guide[] = [
         'Keep sessions manageable. A handful of well-chosen questions followed by careful feedback is more useful than a long list you rush through without checking.'
       ] }
     ]
+  },
+  {
+    slug: 'competitive-exam-study-plan', title: 'How to make a realistic study plan for competitive exams', cardTitle: 'Make a competitive-exam study plan',
+    description: 'A practical way to turn a JEE, NEET, UPSC, or MPSC syllabus into weekly study blocks, revision sessions, and clear next steps.',
+    readTime: '7 min read', category: 'Exam preparation', icon: CalendarDays,
+    sections: [
+      { id: 'map-the-syllabus', heading: 'Map the syllabus before filling a calendar', content: [
+        'Write down the subjects and topics you need to cover, then mark each topic as not started, in progress, or ready for review. Use your official syllabus and current materials as the source of truth. This simple inventory makes it easier to spot what is urgent without treating every chapter as equally difficult.',
+        'Keep the first version small: list the topics you plan to study this week, not every task for the months ahead. A plan should help you make the next decision, not become a second syllabus to maintain.'
+      ] },
+      { id: 'prioritise-with-evidence', heading: 'Prioritise using evidence, not panic', content: [
+        'Choose work based on exam relevance, upcoming classes or tests, and what your own practice shows you have not mastered. A low mock-test score can point to a topic to revisit, but look at the errors: was it a concept gap, a calculation slip, or time pressure? Each cause suggests a different next task.',
+        'Avoid spending the whole week only on weak areas or only on new chapters. Reserve time for current learning, problem practice, and short returns to older material.'
+      ] },
+      { id: 'build-a-repeatable-week', heading: 'Build a week you can repeat', content: [
+        'Start with fixed commitments such as school, coaching, travel, meals, and sleep. Put study blocks into the time that remains and leave some buffer for tasks that run long. Give every block a finish line, such as “solve and review 12 problems on motion,” instead of “do physics.”',
+        'Mix subjects across the week in a way that fits your timetable and attention. Shorter focused sessions can be easier to restart than a single exhausting block. If you miss one, move the important task deliberately rather than trying to repay every missed hour at once.'
+      ] },
+      { id: 'include-revision-and-review', heading: 'Schedule revision and a weekly reset', content: [
+        'When you finish a topic, decide when you will test yourself on it again. Start with a manageable next review and adjust based on how well you can recall or apply the material. Use questions, blank-page explanations, diagrams, or worked problems instead of relying only on rereading.',
+        'At the end of the week, check what was completed and what needs to move. Keep the unfinished work that still matters, reduce tasks that were too large, and make next week’s plan from the time you actually have. Rewisely can keep topics, revision dates, daily tasks, and weekly targets together.'
+      ] }
+    ]
+  },
+  {
+    slug: 'catch-up-study-backlog', title: 'How to catch up on a study backlog without burning out', cardTitle: 'Reset a study backlog calmly',
+    description: 'Missed study targets happen. Use this step-by-step reset to sort unfinished work, choose what matters, and restart a study routine without cramming everything.',
+    readTime: '6 min read', category: 'Study habits', icon: BookOpenCheck,
+    sections: [
+      { id: 'stop-the-growing-list', heading: 'Stop treating every missed task as equally urgent', content: [
+        'A backlog can feel like one giant problem because old tasks and current work sit in the same list. First, collect the unfinished items in one place. Remove duplicates and tasks that are no longer useful, then label what is tied to an upcoming class, test, or prerequisite.',
+        'Do not automatically copy every missed task into tomorrow. That makes the new plan impossible before the day begins and hides the few actions that would actually help.'
+      ] },
+      { id: 'pick-the-next-three', heading: 'Choose a small set of next actions', content: [
+        'Pick one task that protects current learning, one important older topic to revisit, and—if time allows—one short task that clears friction. Make each action specific enough to finish: read a defined section and answer questions, solve a short set and review mistakes, or outline one topic from memory.',
+        'If you are unsure what to prioritise, ask what will block the next lesson or what your recent practice shows is most uncertain. A teacher, course plan, or official syllabus can help resolve conflicts.'
+      ] },
+      { id: 'use-realistic-blocks', heading: 'Restart with realistic study blocks', content: [
+        'Plan around the hours you genuinely have after sleep, meals, classes, and other responsibilities. Begin with a block you can complete and a clear break afterwards. A consistent restart is more useful than an extreme catch-up day that leaves you too tired to continue.',
+        'When a task takes longer than expected, decide whether to finish it, split it, or move a lower-priority item. That is normal adjustment, not failure.'
+      ] },
+      { id: 'review-without-guilt', heading: 'Review the system, not your character', content: [
+        'After a few days, check whether the plan fit your actual schedule. If tasks repeatedly roll over, they may be too broad, too numerous, or placed at the wrong time. Break them down and reduce the weekly load until it is workable.',
+        'Keep a separate short list for later work so it does not compete with today’s priorities. Rewisely can help organise daily tasks, weekly targets, and topic revisions in one place; the goal is a clear next step, not a perfect streak.'
+      ] }
+    ]
+  },
+  {
+    slug: 'study-multiple-subjects', title: 'How to study multiple subjects in one week', cardTitle: 'Balance several subjects in a study week',
+    description: 'Learn how to divide study time across subjects, alternate focused sessions, and keep revision moving when your syllabus has many topics.',
+    readTime: '5 min read', category: 'Planning', icon: RefreshCw,
+    sections: [
+      { id: 'list-subject-work', heading: 'List the actual work for each subject', content: [
+        'Start by writing the next concrete task for each subject. “Maths” is too broad; “review quadratic equations and solve a short mixed set” is easier to schedule. Include deadlines, upcoming lessons, and topics that need revision so your plan reflects more than just new chapters.',
+        'This list helps reveal when one subject is taking all the available time. It also makes it easier to move a task without losing sight of what it involves.'
+      ] },
+      { id: 'choose-weekly-allocation', heading: 'Allocate time by need, not by equal slices', content: [
+        'Subjects may need different amounts of time this week. Consider exam dates, class pace, task size, and how confidently you can solve or explain the material. Give more attention where there is a real need, while keeping a small regular touchpoint with other important subjects.',
+        'Avoid changing the entire schedule every time you feel behind. Make a weekly plan, then adjust only when new information—such as a test result or class deadline—makes a change worthwhile.'
+      ] },
+      { id: 'alternate-session-types', heading: 'Alternate the kind of work you do', content: [
+        'A week can include learning new material, solving problems, recalling older topics, and reviewing mistakes. Switching the type of effort can make a full week feel less repetitive, but keep each individual session focused on one clear outcome.',
+        'For example, a physics session might focus on solving problems while a biology session uses a diagram from memory. Match the activity to the way you need to use the knowledge later.'
+      ] },
+      { id: 'leave-room-to-adjust', heading: 'Leave room to adjust', content: [
+        'Do not schedule every available minute. A buffer helps when a topic is harder than expected or a commitment changes. At the end of the week, carry forward only tasks that remain important and resize anything that did not fit.',
+        'Track the next revision date as well as the next new topic. Rewisely lets you keep subject workflows, revision sessions, and weekly targets together so you can see the balance at a glance.'
+      ] }
+    ]
   }
 ];
 
@@ -138,13 +207,13 @@ function setMeta(key: string, content: string, attribute: 'name' | 'property' = 
 }
 
 export function GuideIndexPage() {
-  const description = 'Practical, student-friendly guides to spaced revision, active recall, and planning a study week you can stick to.';
+  const description = 'Practical guides to exam study planning, spaced revision, active recall, managing a study backlog, and balancing subjects in a realistic week.';
   return (
     <div className="guides-page">
       <SeoMeta title="Study Guides for Better Revision and Planning | Rewisely" description={description} path="/guides" />
       <PublicHeader />
       <main className="guides-main">
-        <div className="guides-hero"><span className="guide-kicker"><Sparkles size={14} /> THE REWISELY STUDY LIBRARY</span><h1>Study smarter, one useful habit at a time.</h1><p>Clear, practical guides to help you plan your study time, remember more of what you learn, and make revision feel manageable.</p></div>
+        <div className="guides-hero"><span className="guide-kicker"><Sparkles size={14} /> THE REWISELY STUDY LIBRARY</span><h1>Practical study guides for your next step.</h1><p>Find realistic advice on exam planning, revision, active recall, study backlogs, and balancing several subjects. Use what fits your routine and leave the rest.</p></div>
         <section className="guide-grid" aria-label="Study guides">
           {guides.map(guide => { const Icon = guide.icon; return <article className="guide-card" key={guide.slug}><span className="guide-card-icon"><Icon size={20} /></span><div className="guide-card-meta">{guide.category}<span>·</span><span>{guide.readTime}</span></div><h2><Link to={`/guides/${guide.slug}`}>{guide.cardTitle}</Link></h2><p>{guide.description}</p><Link className="guide-link" to={`/guides/${guide.slug}`}>Read guide <ArrowRight size={15} /></Link></article>; })}
         </section>

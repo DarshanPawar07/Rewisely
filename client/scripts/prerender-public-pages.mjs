@@ -27,13 +27,13 @@ const { renderPublicPage, guides } = serverModule.exports;
   const pages = [
     {
       path: '/',
-      title: 'Rewisely — Plan revisions and build better study habits',
-      description: 'Plan spaced revision, organise study tasks, and track your progress across subjects with Rewisely, a calmer study-planning workspace.',
+      title: 'Study Planner & Revision Tracker for Exam Prep | Rewisely',
+      description: 'Plan study sessions, schedule revisions, and track subjects and chapters in one study planner. Build a routine for JEE, NEET, UPSC, MPSC, or any exam.',
     },
     {
       path: '/guides',
       title: 'Study Guides for Better Revision and Planning | Rewisely',
-      description: 'Practical, student-friendly guides to spaced revision, active recall, and planning a study week you can stick to.',
+      description: 'Practical guides to exam study planning, spaced revision, active recall, managing a study backlog, and balancing subjects in a realistic week.',
     },
     ...guides.map(guide => ({
       path: `/guides/${guide.slug}`,

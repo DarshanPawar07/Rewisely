@@ -14,7 +14,7 @@ const features = [
 export function LandingPage({ theme, onToggleTheme }: Props) {
   return (
     <div className="landing-page">
-      <SeoMeta title="Rewisely — Plan revisions and build better study habits" description="Plan spaced revision, organise study tasks, and track your progress across subjects with Rewisely, a calmer study-planning workspace." path="/" />
+      <SeoMeta title="Study Planner & Revision Tracker for Exam Prep | Rewisely" description="Plan study sessions, schedule revisions, and track subjects and chapters in one study planner. Build a routine for JEE, NEET, UPSC, MPSC, or any exam." path="/" />
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Rewisely home"><img src="/rewisely-icon.png" alt="" /><span>Rewi<span>sely</span></span></Link>
         <nav className="landing-nav" aria-label="Main navigation">
@@ -43,7 +43,7 @@ export function LandingPage({ theme, onToggleTheme }: Props) {
               <div className="preview-top"><div><span className="preview-eyebrow">YOUR STUDY SPACE</span><h2>Today’s focus</h2></div><span className="preview-avatar">S</span></div>
               <div className="preview-focus"><div className="preview-focus-icon"><Target size={19} /></div><div><b>Small steps add up.</b><small>Your plan, ready when you are.</small></div><span className="preview-spark">✦</span></div>
               <div className="preview-section-head"><b>Coming up</b><span>This week</span></div>
-              <div className="preview-event"><span className="preview-event-icon purple"><RefreshCw size={15} /></span><div><b>Revise: Binary Search</b><small><Clock3 size={12} /> Today · 10:30 AM</small></div><span className="preview-status">Revision</span></div>
+              <div className="preview-event"><span className="preview-event-icon purple"><RefreshCw size={15} /></span><div><b>Revise: Quadratic Equations</b><small><Clock3 size={12} /> Today · 10:30 AM</small></div><span className="preview-status">Revision</span></div>
               <div className="preview-event"><span className="preview-event-icon green"><Check size={15} /></span><div><b>Finish practice questions</b><small><CalendarDays size={12} /> Today · Daily task</small></div><span className="preview-status task">Task</span></div>
               <div className="preview-progress"><div><span>Study workflow</span><b>3 of 5 steps</b></div><div className="preview-progress-track"><i /></div><div className="preview-steps"><span className="done">Learn</span><span className="done">Notes</span><span className="done">Revise</span><span>Practice</span><span>Review</span></div></div>
             </div>
@@ -59,6 +59,25 @@ export function LandingPage({ theme, onToggleTheme }: Props) {
         <section className="landing-how" id="how-it-works">
           <div className="landing-how-copy"><span>YOUR NEXT STUDY SESSION</span><h2>Know what to do next.</h2><p>Add a topic or task, choose a plan that works for you, and let Rewisely keep the details organised while you focus on learning.</p><Link className="landing-inline-link" to="/signup">Create your free account <ArrowRight size={16} /></Link></div>
           <div className="landing-how-steps"><div><span>01</span><div><b>Add what you’re studying</b><small>Create topics, chapters, tasks, or a weekly target.</small></div></div><div><span>02</span><div><b>Choose your rhythm</b><small>Set revision dates and shape a workflow for each subject.</small></div></div><div><span>03</span><div><b>Keep moving forward</b><small>Track completed work and see what’s coming up next.</small></div></div></div>
+        </section>
+
+        <section className="landing-exam-plans" aria-labelledby="exam-plans-title">
+          <div className="landing-section-heading"><span>YOUR EXAM, YOUR SYLLABUS</span><h2 id="exam-plans-title">A study planner that fits what you’re preparing for.</h2><p>Bring your own subjects and chapters. Rewisely helps you turn them into a routine you can follow and revise.</p></div>
+          <div className="landing-exam-grid">
+            <article><span>JEE</span><h3>Physics, Chemistry, Maths</h3><p>Plan a chapter, add practice, and schedule a return to tricky concepts.</p></article>
+            <article><span>NEET</span><h3>Biology, Chemistry, Physics</h3><p>Organise topics across subjects and keep revision from slipping through the week.</p></article>
+            <article><span>UPSC · MPSC</span><h3>Polity, History, Geography</h3><p>Break a broad syllabus into manageable topics and track what you’ve covered.</p></article>
+          </div>
+          <p className="landing-exam-note">These are examples to get started—you can use Rewisely for any subject, syllabus, or exam.</p>
+        </section>
+
+        <section className="landing-faq" aria-labelledby="landing-faq-title">
+          <div className="landing-section-heading"><span>QUICK ANSWERS</span><h2 id="landing-faq-title">A few things students ask.</h2></div>
+          <div className="landing-faq-list">
+            <details><summary>Can I use Rewisely for JEE, NEET, UPSC, or MPSC preparation?</summary><p>Yes. Add the subjects, chapters, and topics from your own syllabus, then organise study tasks and revisions around your schedule.</p></details>
+            <details><summary>Does Rewisely provide exam notes or a fixed syllabus?</summary><p>Rewisely is a planning and progress-tracking workspace. You bring your own learning materials and syllabus; it helps you organise what to study and revisit.</p></details>
+            <details><summary>Can I plan revisions as well as daily study tasks?</summary><p>Yes. Keep revision sessions, daily tasks, and weekly targets together so it’s easier to see what’s next.</p></details>
+          </div>
         </section>
 
         <section className="landing-bottom-cta"><div><span>YOUR STUDY SPACE IS READY</span><h2>Start with one topic.</h2><p>Build a routine that helps your learning stick.</p></div><Link className="landing-signup landing-cta" to="/signup">Get started for free <ArrowRight size={17} /></Link></section>
