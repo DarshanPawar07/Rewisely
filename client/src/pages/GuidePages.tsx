@@ -164,6 +164,7 @@ export function SeoMeta({ title, description, path, type = 'website', indexable 
     setMeta('description', description);
     setMeta('robots', indexable ? 'index,follow' : 'noindex,follow');
     setMeta('og:type', type, 'property');
+    setMeta('og:site_name', 'Rewisely', 'property');
     setMeta('og:title', title, 'property');
     setMeta('og:description', description, 'property');
     setMeta('og:url', canonicalUrl, 'property');
@@ -177,7 +178,7 @@ export function SeoMeta({ title, description, path, type = 'website', indexable 
     canonical.href = canonicalUrl;
     const structuredData = path === '/'
       ? [
-          { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', url: `${SITE_URL}/` },
+          { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', alternateName: ['Rewisely Online', 'rewisely.online'], url: `${SITE_URL}/` },
           { '@context': 'https://schema.org', '@type': 'Organization', name: 'Rewisely', url: `${SITE_URL}/`, logo: `${SITE_URL}/rewisely-icon.png` },
         ]
       : type === 'article'

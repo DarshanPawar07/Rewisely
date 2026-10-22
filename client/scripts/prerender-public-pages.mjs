@@ -64,7 +64,7 @@ function withHead(html, { path: route, title, description }) {
   const canonical = `${siteUrl}${route}`;
   const structuredData = route === '/'
     ? [
-        { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', url: `${siteUrl}/` },
+        { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rewisely', alternateName: ['Rewisely Online', 'rewisely.online'], url: `${siteUrl}/` },
         { '@context': 'https://schema.org', '@type': 'Organization', name: 'Rewisely', url: `${siteUrl}/`, logo: `${siteUrl}/rewisely-icon.png` },
       ]
     : route.startsWith('/guides/')
@@ -81,6 +81,7 @@ function withHead(html, { path: route, title, description }) {
     `<meta name="description" content="${escapeAttribute(description)}" />`,
     '<meta name="robots" content="index,follow" />',
     '<meta property="og:type" content="' + (route.startsWith('/guides/') ? 'article' : 'website') + '" />',
+    '<meta property="og:site_name" content="Rewisely" />',
     `<meta property="og:title" content="${escapeAttribute(title)}" />`,
     `<meta property="og:description" content="${escapeAttribute(description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
