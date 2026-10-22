@@ -231,17 +231,20 @@ export function AboutPage() {
     <div className="guides-page">
       <SeoMeta title="About Rewisely | A Study Planner for Students" description={description} path="/about" />
       <PublicHeader />
-      <main className="public-info-main">
-        <Link className="guide-back" to="/">Home</Link>
-        <article className="public-info-card">
-          <span className="guide-kicker"><Sparkles size={14} /> ABOUT REWISELY</span>
-          <h1>A calmer place to organise your study routine.</h1>
-          <p>Rewisely is a study-planning workspace for students who want a clearer view of what to study and when to revisit it. It brings subjects, topics, revision sessions, daily tasks, and weekly targets together in one place.</p>
-          <h2>Made for your own syllabus</h2>
-          <p>Whether you’re preparing for JEE, NEET, UPSC, MPSC, school, or college exams, you can add your own subjects and topics and shape a workflow that fits your learning routine. Rewisely helps you organise your plan; it does not provide exam notes or promise a particular result.</p>
-          <h2>Keep the next step visible</h2>
-          <p>Plan a topic, choose when to review it, and track what you complete. The aim is to make it easier to return to your learning consistently—not to make your study plan another source of pressure.</p>
-          <Link className="landing-signup" to="/signup">Start planning <ArrowRight size={16} /></Link>
+      <main className="guide-article-main">
+        <Link className="guide-back" to="/"><ArrowLeft size={15} /> Home</Link>
+        <article className="guide-article">
+          <header className="guide-article-head">
+            <span className="guide-kicker"><Sparkles size={14} /> ABOUT REWISELY</span>
+            <h1>A calmer place to organise your study routine.</h1>
+            <p className="guide-dek">A focused workspace to plan what you’ll study, when you’ll revisit it, and how your routine is taking shape.</p>
+          </header>
+          <div className="guide-body">
+            <section><h2>One home for your study plan</h2><p>Rewisely brings subjects, topics, revision sessions, daily tasks, and weekly targets together in one place—so it’s easier to see what to do next and keep moving at your own pace.</p></section>
+            <section><h2>Made for your own syllabus</h2><p>Whether you’re preparing for JEE, NEET, UPSC, MPSC, school, or college exams, you can add your own subjects and topics and shape a workflow that fits your learning routine. Rewisely helps you organise your plan; it does not provide exam notes or promise a particular result.</p></section>
+            <section><h2>Keep the next step visible</h2><p>Plan a topic, choose when to review it, and track what you complete. The aim is to make it easier to return to your learning consistently—not to make your study plan another source of pressure.</p></section>
+          </div>
+          <aside className="guide-callout"><Sparkles size={20} /><div><b>Start with one small step</b><p>Add a subject, choose a topic, and build a routine that works for you.</p><Link to="/signup">Start planning <ArrowRight size={15} /></Link></div></aside>
         </article>
       </main>
       <PublicFooter />
@@ -255,14 +258,18 @@ export function ContactPage() {
     <div className="guides-page">
       <SeoMeta title="Contact Rewisely | Help and Feedback" description={description} path="/contact" />
       <PublicHeader />
-      <main className="public-info-main">
-        <Link className="guide-back" to="/">Home</Link>
-        <article className="public-info-card">
-          <span className="guide-kicker"><BookOpenCheck size={14} /> CONTACT</span>
-          <h1>Questions or feedback?</h1>
-          <p>For a bug report, feature suggestion, or question about Rewisely, use the project’s public support page. Include what you were trying to do and what happened so it’s easier to understand the issue.</p>
-          <p>Please don’t post passwords, sign-in codes, or private study information in a public report.</p>
-          <a className="landing-signup" href="https://github.com/DarshanPawar07/Rewisely/issues" target="_blank" rel="noreferrer">Open the support page <ArrowRight size={16} /></a>
+      <main className="guide-article-main">
+        <Link className="guide-back" to="/"><ArrowLeft size={15} /> Home</Link>
+        <article className="guide-article">
+          <header className="guide-article-head">
+            <span className="guide-kicker"><BookOpenCheck size={14} /> CONTACT REWISELY</span>
+            <h1>Questions or feedback?</h1>
+            <p className="guide-dek">We’d like to hear what’s working, what’s confusing, and what would make your study routine easier.</p>
+          </header>
+          <div className="guide-body">
+            <section><h2>Get in touch</h2><p>For a bug report, feature suggestion, or question about Rewisely, use the project’s public support page. Include what you were trying to do and what happened so it’s easier to understand the issue.</p></section>
+          </div>
+          <aside className="guide-callout"><BookOpenCheck size={20} /><div><b>Keep your account details private</b><p>Please don’t post passwords, sign-in codes, or private study information in a public report.</p><a href="https://github.com/DarshanPawar07/Rewisely/issues" target="_blank" rel="noreferrer">Open the support page <ArrowRight size={15} /></a></div></aside>
         </article>
       </main>
       <PublicFooter />
